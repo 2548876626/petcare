@@ -30,6 +30,27 @@ const validatePass = (rule: any, value: string, callback: any) => {
   }
 }
 
+// 验证密码复杂度
+const validatePassword = (rule: any, value: string, callback: any) => {
+  if (value === '') {
+    callback(new Error('请输入密码'))
+    return
+  }
+  
+  // 检查密码是否包含小写字母、大写字母和数字
+  const hasLowerCase = /[a-z]/.test(value)
+  const hasUpperCase = /[A-Z]/.test(value)
+  const hasNumber = /[0-9]/.test(value)
+  
+  if (value.length < 6) {
+    callback(new Error('密码长度不能少于6个字符'))
+  } else if (!(hasLowerCase && hasUpperCase && hasNumber)) {
+    callback(new Error('密码必须包含小写字母、大写字母和数字'))
+  } else {
+    callback()
+  }
+}
+
 // 表单验证规则
 const registerRules = reactive<FormRules>({
   name: [
@@ -42,7 +63,7 @@ const registerRules = reactive<FormRules>({
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能少于6个字符', trigger: 'blur' }
+    { validator: validatePassword, trigger: 'blur' }
   ],
   confirmPassword: [
     { required: true, message: '请再次输入密码', trigger: 'blur' },
@@ -133,7 +154,7 @@ const goToLogin = () => {
             show-password
           />
           <div class="el-form-item__tip">
-            建议包含大小写字母、数字和符号,长度不少于6位。
+            密码必须包含小写字母、大写字母和数字，长度不少于6位。
           </div>
         </el-form-item>
         

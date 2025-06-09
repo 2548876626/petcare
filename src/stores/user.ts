@@ -10,6 +10,25 @@ interface UserProfile {
   created_at: string
 }
 
+// 密码验证函数
+const validatePasswordStrength = (password: string): { valid: boolean, message?: string } => {
+  // 检查密码长度
+  if (password.length < 6) {
+    return { valid: false, message: '密码长度不能少于6个字符' }
+  }
+  
+  // 检查密码是否包含小写字母、大写字母和数字
+  const hasLowerCase = /[a-z]/.test(password)
+  const hasUpperCase = /[A-Z]/.test(password)
+  const hasNumber = /[0-9]/.test(password)
+  
+  if (!(hasLowerCase && hasUpperCase && hasNumber)) {
+    return { valid: false, message: '密码必须包含小写字母、大写字母和数字' }
+  }
+  
+  return { valid: true }
+}
+
 export const useUserStore = defineStore('user', () => {
   // 状态
   const user = ref<User | null>(null)
@@ -97,37 +116,43 @@ export const useUserStore = defineStore('user', () => {
   // 用户注册
   const register = async (email: string, password: string, name: string) => {
     try {
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: {
-          name: name
+      // 验证密码强度
+      const passwordValidation = validatePasswordStrength(password)
+      if (!passwordValidation.valid) {
+        return { success: false, error: passwordValidation.message }
+      }
+      
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            name: name
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return { success: true, error: null };
+    } catch (error: any) {
+      let errorMessage = '注册发生未知错误';
+      if (error.message) {
+        if (error.message.includes('User already registered')) {
+          errorMessage = '这个邮箱已经被人注册过了啦！';
+        } else if (error.message.includes('violates row-level security policy')) {
+          // 这个是给我们自己看的，除错用的
+          errorMessage = '资料库安全设定出问题了，请联络管理员喔！';
+        }
+        else {
+          errorMessage = error.message;
         }
       }
-    });
-
-    if (error) {
-      throw error;
+      return { success: false, error: errorMessage };
     }
-
-    return { success: true, error: null };
-  } catch (error: any) {
-    let errorMessage = '注册发生未知错误';
-    if (error.message) {
-      if (error.message.includes('User already registered')) {
-        errorMessage = '这个邮箱已经被人注册过了啦！';
-      } else if (error.message.includes('violates row-level security policy')) {
-        // 这个是给我们自己看的，除错用的
-        errorMessage = '资料库安全设定出问题了，请联络管理员喔！';
-      }
-      else {
-        errorMessage = error.message;
-      }
-    }
-    return { success: false, error: errorMessage };
   }
-}
 
   // 用户退出登录
   const logout = async () => {
