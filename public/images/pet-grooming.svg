@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f0f0f0"/>
+  <text x="200" y="150" font-family="Arial" font-size="24" text-anchor="middle" fill="#333">宠物美容洗护</text>
+  <circle cx="200" cy="100" r="50" fill="#e6a23c" opacity="0.7"/>
+  <path d="M180,80 L220,80 L220,120 Q200,140 180,120 Z" fill="white"/>
+</svg> 

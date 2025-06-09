@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f0f0f0"/>
+  <text x="200" y="150" font-family="Arial" font-size="24" text-anchor="middle" fill="#333">宠物上门喂养</text>
+  <circle cx="200" cy="100" r="40" fill="#409eff" opacity="0.7"/>
+  <path d="M180,90 C180,80 220,80 220,90 L220,110 C220,120 180,120 180,110 Z" fill="white"/>
+  <path d="M195,100 L205,100 L205,120 L195,120 Z" fill="#409eff"/>
+</svg> 

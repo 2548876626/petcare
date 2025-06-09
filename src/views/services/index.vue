@@ -2,16 +2,10 @@
 import { ref, reactive, computed } from 'vue'
 import { Search, PictureFilled } from '@element-plus/icons-vue'
 
-// 定义一个辅助函数，用于获取图片
+// 定义一个辅助函数，用于获取本地图片
 const getServiceImage = (imageName: string) => {
-  // 尝试使用本地图片，如果失败则使用在线图片
-  try {
-    // 这里使用在线图片作为备选
-    return `https://source.unsplash.com/random/400x300?${imageName.replace('.jpg', '')}`
-  } catch (error) {
-    console.error('图片加载失败:', error)
-    return `https://source.unsplash.com/random/400x300?pet`
-  }
+  // 使用src/assets/images目录下的图片
+  return new URL(`../../assets/images/${imageName}`, import.meta.url).href
 }
 
 // 服务类别
@@ -69,7 +63,7 @@ const allServices = ref([
     description: '当您不在家时，我们的专业人员可以上门照顾您的宠物，提供喂食、清洁和陪伴服务。',
     price: '¥50-100/次',
     category: 'care',
-    imageName: 'pet-feeding.jpg'
+    imageName: 'in-home-feeding.jpg'
   },
   {
     id: 6,
@@ -77,7 +71,7 @@ const allServices = ref([
     description: '为您的宠物提供必要的疫苗接种服务，预防常见疾病，保障宠物健康。',
     price: '¥80-300/针',
     category: 'medical',
-    imageName: 'pet-vaccine.jpg'
+    imageName: 'pet-vaccination.jpg'
   },
   {
     id: 7,
@@ -85,7 +79,7 @@ const allServices = ref([
     description: '专业的宠物牙齿清洁服务，去除牙结石，预防口腔疾病，保持口气清新。',
     price: '¥200-500/次',
     category: 'medical',
-    imageName: 'pet-dental.jpg'
+    imageName: 'dental-cleaning.jpg'
   },
   {
     id: 8,
@@ -93,7 +87,7 @@ const allServices = ref([
     description: '针对宠物的各种不良行为，如乱叫、咬东西、乱排泄等，提供专业的行为矫正训练。',
     price: '¥300-600/课程',
     category: 'training',
-    imageName: 'pet-behavior.jpg'
+    imageName: 'behavior-correction.jpg'
   },
   {
     id: 9,

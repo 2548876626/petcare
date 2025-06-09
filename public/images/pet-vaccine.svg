@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f0f0f0"/>
+  <text x="200" y="150" font-family="Arial" font-size="24" text-anchor="middle" fill="#333">宠物疫苗接种</text>
+  <rect x="160" y="70" width="80" height="60" fill="#67c23a" opacity="0.7"/>
+  <path d="M190,80 L210,80 L210,90 L220,90 L220,110 L210,110 L210,120 L190,120 L190,110 L180,110 L180,90 L190,90 Z" fill="white"/>
+</svg> 
