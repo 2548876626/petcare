@@ -69,10 +69,7 @@ const viewAllServices = () => {
   router.push('/services')
 }
 
-// 定义一个辅助函数，用于动态导入图片
-const getServiceImage = (imageName: string) => {
-  return new URL(`../../assets/images/${imageName}`, import.meta.url).href
-}
+// 暂时不需要图片导入辅助函数
 </script>
 
 <template>

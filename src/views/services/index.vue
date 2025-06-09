@@ -4,8 +4,8 @@ import { Search, PictureFilled } from '@element-plus/icons-vue'
 
 // 定义一个辅助函数，用于获取本地图片
 const getServiceImage = (imageName: string) => {
-  // 使用src/assets/images目录下的图片
-  return new URL(`../../assets/images/${imageName}`, import.meta.url).href
+  // 使用public/images目录下的图片（绝对路径，适合生产环境）
+  return `/images/${imageName}`
 }
 
 // 服务类别
