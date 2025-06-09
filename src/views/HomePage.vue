@@ -4,34 +4,39 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+// 获取本地图片函数
+const getLocalImage = (imageName: string) => {
+  return `/images/${imageName}`
+}
+
 // 静态数据 - 宠物服务卡片
 const petServices = ref([
   {
     id: 1,
     title: '宠物寄养',
     description: '为您的宠物提供温馨、安全的寄养环境，让您安心出行无忧。',
-    image: 'https://source.unsplash.com/random/300x200?pet+care',
+    image: getLocalImage('pet-boarding.jpg'),
     icon: 'House'
   },
   {
     id: 2,
     title: '宠物医疗',
     description: '专业的兽医团队提供全面的宠物健康检查和疾病治疗服务。',
-    image: 'https://source.unsplash.com/random/300x200?vet',
+    image: getLocalImage('pet-health-check.jpg'),
     icon: 'FirstAidKit'
   },
   {
     id: 3,
     title: '宠物美容',
     description: '为您的爱宠提供专业的美容服务，让它们保持靓丽外表。',
-    image: 'https://source.unsplash.com/random/300x200?pet+grooming',
+    image: getLocalImage('pet-grooming.jpg'),
     icon: 'Scissors'
   },
   {
     id: 4,
     title: '宠物训练',
     description: '专业的训犬师团队帮助您的宠物养成良好习惯。',
-    image: 'https://source.unsplash.com/random/300x200?pet+training',
+    image: getLocalImage('pet-training.jpg'),
     icon: 'Medal'
   }
 ])
@@ -44,7 +49,7 @@ const communityUpdates = ref([
     date: '2023-08-12',
     author: '王小明',
     summary: '如何为您的家庭选择一只合适的宠物？本文将从多方面为您分析...',
-    image: 'https://source.unsplash.com/random/400x300?puppies'
+    image: getLocalImage('pet-boarding.jpg') // 使用已有的图片
   },
   {
     id: 2,
@@ -52,7 +57,7 @@ const communityUpdates = ref([
     date: '2023-08-05',
     author: '李医生',
     summary: '炎炎夏日，宠物也会中暑，本指南帮您了解预防措施和应对方法...',
-    image: 'https://source.unsplash.com/random/400x300?dog+summer'
+    image: getLocalImage('pet-health-check.jpg') // 使用已有的图片
   },
   {
     id: 3,
@@ -60,7 +65,7 @@ const communityUpdates = ref([
     date: '2023-07-28',
     author: '张小猫',
     summary: '猫咪的每个动作都在传递信息，本文帮您读懂猫咪的心思...',
-    image: 'https://source.unsplash.com/random/400x300?cat+behavior'
+    image: getLocalImage('pet-grooming.jpg') // 使用已有的图片
   }
 ])
 
@@ -157,7 +162,7 @@ const viewAllServices = () => {
 /* 英雄区样式 */
 .hero-section {
   height: 500px;
-  background-image: url('https://source.unsplash.com/random/1600x900?pets');
+  background-image: url('/images/pet-boarding.jpg'); /* 使用本地图片 */
   background-size: cover;
   background-position: center;
   position: relative;
