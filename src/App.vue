@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from './stores/user'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
+
+// 当前活动路由
+const activeIndex = computed(() => route.path)
 
 // 计算用户是否已登录
 const isLoggedIn = computed(() => userStore.isAuthenticated)
@@ -51,7 +55,7 @@ const goToMyAccount = () => {
       </div>
       
       <nav class="nav">
-        <el-menu mode="horizontal" router>
+        <el-menu mode="horizontal" router :default-active="activeIndex">
           <el-menu-item index="/">首页</el-menu-item>
           <el-menu-item index="/services">服务列表</el-menu-item>
         </el-menu>
