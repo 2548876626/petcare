@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import heroImageUrl from '@/assets/images/hero-background.jpg'
 
 const router = useRouter()
 
@@ -80,7 +81,7 @@ const viewAllServices = () => {
 <template>
   <div class="home-page">
     <!-- 英雄区域 -->
-    <section class="hero-section">
+    <section class="hero-section" :style="{ backgroundImage: `url(${heroImageUrl})` }">
       <div class="hero-content">
         <h1 class="hero-title">让爱宠生活更美好</h1>
         <p class="hero-subtitle">宠爱社区 - 一站式宠物服务平台</p>
@@ -162,7 +163,6 @@ const viewAllServices = () => {
 /* 英雄区样式 */
 .hero-section {
   height: 500px;
-  background-image: url('/images/pet-boarding.jpg'); /* 使用本地图片 */
   background-size: cover;
   background-position: center;
   position: relative;
