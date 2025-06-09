@@ -52,10 +52,13 @@ const registerRules = reactive<FormRules>({
 
 // 注册中状态
 const loading = ref(false)
+// 错误信息
+const errorMsg = ref('')
 
 // 提交表单
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
+  errorMsg.value = ''
   
   await formEl.validate(async (valid) => {
     if (valid) {
@@ -73,8 +76,12 @@ const submitForm = async (formEl: FormInstance | undefined) => {
           ElMessage.success('注册成功，请登录')
           router.push('/login')
         } else {
-          ElMessage.error(error || '注册失败，请稍后再试')
+          errorMsg.value = error || '注册失败，请稍后再试'
+          ElMessage.error(errorMsg.value)
         }
+      } catch (error: any) {
+        errorMsg.value = error.message || '注册时发生错误'
+        ElMessage.error(errorMsg.value)
       } finally {
         loading.value = false
       }
@@ -138,6 +145,10 @@ const goToLogin = () => {
             show-password
           />
         </el-form-item>
+        
+        <div v-if="errorMsg" class="error-message">
+          {{ errorMsg }}
+        </div>
         
         <div class="form-actions">
           <el-button
@@ -220,5 +231,12 @@ const goToLogin = () => {
   color: #909399;
   line-height: 1.5;
   margin-top: 4px;
+}
+
+.error-message {
+  color: #f56c6c;
+  font-size: 14px;
+  margin: 5px 0;
+  text-align: center;
 }
 </style> 

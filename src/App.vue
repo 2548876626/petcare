@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from './stores/user'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -11,8 +12,27 @@ const isLoggedIn = computed(() => userStore.isAuthenticated)
 
 // 退出登录
 const logout = async () => {
-  await userStore.logout()
+  try {
+    const { success, error } = await userStore.logout()
+    if (success) {
+      ElMessage.success('已成功退出登录')
+      router.push('/')
+    } else {
+      ElMessage.error(error || '退出登录失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '退出登录时发生错误')
+  }
+}
+
+// 跳转到登录页面
+const goToLogin = () => {
   router.push('/login')
+}
+
+// 跳转到注册页面
+const goToRegister = () => {
+  router.push('/register')
 }
 
 // 跳转到我的账户页面
@@ -52,8 +72,8 @@ const goToMyAccount = () => {
           </el-dropdown>
         </template>
         <template v-else>
-          <el-button @click="router.push('/login')">登录</el-button>
-          <el-button type="primary" @click="router.push('/register')">注册</el-button>
+          <el-button @click="goToLogin">登录</el-button>
+          <el-button type="primary" @click="goToRegister">注册</el-button>
         </template>
       </div>
     </header>

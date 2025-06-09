@@ -22,25 +22,33 @@ export const useUserStore = defineStore('user', () => {
 
   // 初始化用户状态
   const initialize = async () => {
-    // 获取当前会话
-    const { data } = await supabase.auth.getSession()
-    if (data.session) {
-      session.value = data.session
-      user.value = data.session.user
-      await fetchUserProfile()
-    }
-
-    // 监听身份验证状态变化
-    supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      session.value = newSession
-      user.value = newSession?.user ?? null
-      
-      if (newSession) {
+    try {
+      // 获取当前会话
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        session.value = data.session
+        user.value = data.session.user
         await fetchUserProfile()
-      } else {
-        profile.value = null
       }
-    })
+
+      // 监听身份验证状态变化
+      supabase.auth.onAuthStateChange(async (_event, newSession) => {
+        session.value = newSession
+        user.value = newSession?.user ?? null
+        
+        if (newSession) {
+          await fetchUserProfile()
+        } else {
+          profile.value = null
+        }
+      })
+    } catch (error) {
+      console.error('初始化用户状态失败:', error)
+      // 确保在出错时清除用户状态
+      user.value = null
+      session.value = null
+      profile.value = null
+    }
   }
 
   // 获取用户资料

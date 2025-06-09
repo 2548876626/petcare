@@ -6,11 +6,21 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // 检查环境变量是否已定义
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('缺少必要的Supabase环境变量。请检查.env.development文件是否正确配置。')
+  console.error('缺少必要的Supabase环境变量。请检查环境变量配置是否正确。')
 }
 
 // 创建Supabase客户端
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(
+  supabaseUrl || '', 
+  supabaseAnonKey || '',
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  }
+)
 
 // 导出类型
 export type { User, Session } from '@supabase/supabase-js'
