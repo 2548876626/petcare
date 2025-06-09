@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { supabase } from '@/lib/supabaseClient'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -18,6 +19,10 @@ const registerForm = reactive({
   password: '',
   confirmPassword: ''
 })
+
+// 邮箱校验状态
+const emailCheckStatus = ref<'idle' | 'checking' | 'valid' | 'invalid'>('idle')
+const emailCheckMessage = ref('')
 
 // 验证密码是否一致
 const validatePass = (rule: any, value: string, callback: any) => {
@@ -71,6 +76,97 @@ const registerRules = reactive<FormRules>({
   ]
 })
 
+// 检查邮箱是否已存在
+const checkEmailAvailability = async () => {
+  // 检查邮箱是否为空或格式不正确
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!registerForm.email || !emailRegex.test(registerForm.email)) {
+    emailCheckStatus.value = 'idle'
+    emailCheckMessage.value = ''
+    return
+  }
+
+  // 设置为检查中状态
+  emailCheckStatus.value = 'checking'
+  emailCheckMessage.value = '正在检查邮箱可用性...'
+
+  try {
+    // 查询邮箱是否已存在
+    const { data, error } = await supabase
+      .from('auth')
+      .select('email')
+      .eq('email', registerForm.email)
+      .maybeSingle()
+
+    // 处理查询结果
+    if (error) {
+      console.error('检查邮箱失败:', error)
+      emailCheckStatus.value = 'idle'
+      emailCheckMessage.value = '检查邮箱失败，请稍后再试'
+      return
+    }
+
+    // 判断邮箱是否存在
+    if (data) {
+      // 邮箱已存在
+      emailCheckStatus.value = 'invalid'
+      emailCheckMessage.value = '此邮箱已被注册，请换一个或直接登录'
+    } else {
+      // 邮箱可用
+      emailCheckStatus.value = 'valid'
+      emailCheckMessage.value = '这个邮箱太棒了，可以使用！'
+    }
+  } catch (error) {
+    console.error('检查邮箱出错:', error)
+    emailCheckStatus.value = 'idle'
+    emailCheckMessage.value = '检查邮箱时发生错误，请稍后再试'
+  }
+}
+
+// 使用另一种方式检查邮箱是否存在
+const checkEmailExistenceWithAuth = async () => {
+  // 检查邮箱是否为空或格式不正确
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!registerForm.email || !emailRegex.test(registerForm.email)) {
+    emailCheckStatus.value = 'idle'
+    emailCheckMessage.value = ''
+    return
+  }
+
+  // 设置为检查中状态
+  emailCheckStatus.value = 'checking'
+  emailCheckMessage.value = '正在检查邮箱可用性...'
+
+  try {
+    // 使用Supabase的rpc函数调用检查邮箱是否存在
+    const { data, error } = await supabase.rpc('check_email_exists', {
+      email_to_check: registerForm.email
+    })
+
+    if (error) {
+      console.error('检查邮箱失败:', error)
+      emailCheckStatus.value = 'idle'
+      emailCheckMessage.value = '检查邮箱失败，请稍后再试'
+      return
+    }
+
+    // 根据返回值设置状态
+    if (data === true) {
+      // 邮箱已存在
+      emailCheckStatus.value = 'invalid'
+      emailCheckMessage.value = '此邮箱已被注册，请换一个或直接登录'
+    } else {
+      // 邮箱可用
+      emailCheckStatus.value = 'valid'
+      emailCheckMessage.value = '这个邮箱太棒了，可以使用！'
+    }
+  } catch (error) {
+    console.error('检查邮箱出错:', error)
+    emailCheckStatus.value = 'idle'
+    emailCheckMessage.value = '检查邮箱时发生错误，请稍后再试'
+  }
+}
+
 // 注册中状态
 const loading = ref(false)
 // 错误信息
@@ -80,6 +176,12 @@ const errorMsg = ref('')
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   errorMsg.value = ''
+  
+  // 检查邮箱状态
+  if (emailCheckStatus.value === 'checking' || emailCheckStatus.value === 'invalid') {
+    ElMessage.warning('请先处理邮箱问题')
+    return
+  }
   
   await formEl.validate(async (valid) => {
     if (valid) {
@@ -143,7 +245,19 @@ const goToLogin = () => {
             v-model="registerForm.email"
             placeholder="请输入您的邮箱"
             type="email"
+            @blur="checkEmailExistenceWithAuth"
           />
+          <div 
+            v-if="emailCheckMessage" 
+            class="email-check-message"
+            :class="{
+              'checking': emailCheckStatus === 'checking',
+              'valid': emailCheckStatus === 'valid',
+              'invalid': emailCheckStatus === 'invalid'
+            }"
+          >
+            {{ emailCheckMessage }}
+          </div>
         </el-form-item>
         
         <el-form-item label="密码" prop="password">
@@ -259,5 +373,23 @@ const goToLogin = () => {
   font-size: 14px;
   margin: 5px 0;
   text-align: center;
+}
+
+.email-check-message {
+  font-size: 12px;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.email-check-message.checking {
+  color: #909399;
+}
+
+.email-check-message.valid {
+  color: #67c23a;
+}
+
+.email-check-message.invalid {
+  color: #f56c6c;
 }
 </style> 

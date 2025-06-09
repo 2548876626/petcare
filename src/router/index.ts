@@ -29,20 +29,32 @@ const routes = [
   },
   {
     path: '/community',
-    name: 'community',
+    name: 'Community',
     component: () => import('@/views/community/index.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/album',
+    name: 'Album',
+    component: () => import('@/views/gallery/index.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/views/about/index.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/post/:id',
+    name: 'PostDetail',
+    component: () => import('@/views/post/PostDetail.vue'),
     meta: { requiresAuth: false }
   },
   {
     path: '/gallery',
     name: 'gallery',
     component: () => import('@/views/gallery/index.vue'),
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import('@/views/about/index.vue'),
     meta: { requiresAuth: false }
   },
   {

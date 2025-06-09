@@ -1,7 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import heroImageUrl from '@/assets/images/hero-background.jpg'
+import { supabase } from '@/lib/supabaseClient'
+import { ElLoading } from 'element-plus'
+
+// 文章接口定义
+interface Post {
+  id: number;
+  title: string;
+  summary: string;
+  content: string;
+  author: string;
+  cover_image_url: string;
+  published_at: string;
+  created_at: string;
+}
 
 const router = useRouter()
 
@@ -42,40 +56,42 @@ const petServices = ref([
   }
 ])
 
-// 静态数据 - 社区动态
-const communityUpdates = ref([
-  {
-    id: 1,
-    title: '新手养宠必读：选择适合您家庭的宠物',
-    date: '2023-08-12',
-    author: '王小明',
-    summary: '如何为您的家庭选择一只合适的宠物？本文将从多方面为您分析...',
-    image: getLocalImage('pet-boarding.jpg') // 使用已有的图片
-  },
-  {
-    id: 2,
-    title: '夏季宠物保健指南：预防中暑的方法',
-    date: '2023-08-05',
-    author: '李医生',
-    summary: '炎炎夏日，宠物也会中暑，本指南帮您了解预防措施和应对方法...',
-    image: getLocalImage('pet-health-check.jpg') // 使用已有的图片
-  },
-  {
-    id: 3,
-    title: '猫咪行为解读：理解您猫咪的肢体语言',
-    date: '2023-07-28',
-    author: '张小猫',
-    summary: '猫咪的每个动作都在传递信息，本文帮您读懂猫咪的心思...',
-    image: getLocalImage('pet-grooming.jpg') // 使用已有的图片
+// 社区动态文章数据
+const communityUpdates = ref<Post[]>([])
+const loadingPosts = ref(false)
+
+// 获取最新文章
+const fetchLatestPosts = async () => {
+  loadingPosts.value = true
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .order('published_at', { ascending: false })
+      .limit(3)
+    
+    if (error) {
+      console.error('获取文章失败:', error)
+      return
+    }
+    
+    communityUpdates.value = data as Post[]
+  } catch (error) {
+    console.error('获取文章出错:', error)
+  } finally {
+    loadingPosts.value = false
   }
-])
+}
 
 // 跳转到服务列表页
 const viewAllServices = () => {
   router.push('/services')
 }
 
-// 暂时不需要图片导入辅助函数
+// 页面加载时获取数据
+onMounted(() => {
+  fetchLatestPosts()
+})
 </script>
 
 <template>
@@ -119,24 +135,37 @@ const viewAllServices = () => {
     <!-- 社区动态区 -->
     <section class="community-section">
       <div class="section-header">
-        <h2 class="section-title">社区动态</h2>
+        <h2 class="section-title">
+          社区动态
+          <router-link to="/community" class="view-more-link">查看更多 →</router-link>
+        </h2>
         <p class="section-description">分享宠物养护知识与社区新闻</p>
       </div>
       
-      <el-row :gutter="30" class="community-posts">
+      <el-row v-loading="loadingPosts" :gutter="30" class="community-posts">
+        <el-col v-if="communityUpdates.length === 0 && !loadingPosts" :span="24">
+          <div class="no-posts">
+            <p>暂无文章，请稍后再来查看</p>
+          </div>
+        </el-col>
+        
         <el-col v-for="post in communityUpdates" :key="post.id" :xs="24" :sm="24" :md="8">
-          <el-card class="post-card" shadow="hover">
-            <div class="post-image">
-              <img :src="post.image" :alt="post.title">
-            </div>
-            <div class="post-meta">
-              <span class="post-date">{{ post.date }}</span>
-              <span class="post-author">by {{ post.author }}</span>
-            </div>
-            <h3 class="post-title">{{ post.title }}</h3>
-            <p class="post-summary">{{ post.summary }}</p>
-            <el-button text>阅读全文</el-button>
-          </el-card>
+          <router-link :to="'/post/' + post.id" class="post-link">
+            <el-card class="post-card" shadow="hover">
+              <div class="post-image">
+                <img :src="post.cover_image_url" :alt="post.title">
+              </div>
+              <div class="post-meta">
+                <span class="post-date">{{ new Date(post.published_at).toLocaleDateString() }}</span>
+                <span class="post-author">by {{ post.author }}</span>
+              </div>
+              <h3 class="post-title">{{ post.title }}</h3>
+              <p class="post-summary">{{ post.summary }}</p>
+              <div class="read-more">
+                <span>阅读全文</span>
+              </div>
+            </el-card>
+          </router-link>
         </el-col>
       </el-row>
     </section>
@@ -210,6 +239,23 @@ const viewAllServices = () => {
   font-size: 2rem;
   color: #333;
   margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.view-more-link {
+  font-size: 1rem;
+  color: #409eff;
+  margin-left: 15px;
+  font-weight: normal;
+  vertical-align: middle;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.view-more-link:hover {
+  color: #66b1ff;
+  text-decoration: underline;
 }
 
 .section-description {
@@ -278,9 +324,22 @@ const viewAllServices = () => {
   padding: 60px 20px;
 }
 
+.post-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
 .post-card {
   height: 100%;
   margin-bottom: 20px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
 }
 
 .post-image {
@@ -320,6 +379,26 @@ const viewAllServices = () => {
 .post-summary {
   color: #666;
   margin-bottom: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.read-more {
+  color: #409eff;
+  font-weight: 500;
+  margin-top: auto;
+}
+
+.no-posts {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  color: #666;
+  font-size: 16px;
 }
 
 /* 注册推广区样式 */
@@ -365,6 +444,12 @@ const viewAllServices = () => {
   .cta-buttons {
     flex-direction: column;
     gap: 10px;
+  }
+  
+  .view-more-link {
+    display: block;
+    margin-left: 0;
+    margin-top: 5px;
   }
 }
 </style> 
