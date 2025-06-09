@@ -3,10 +3,20 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from './stores/user'
 import { ElMessage } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+
+// 导航链接数组
+const navLinks = [
+  { name: '首页', path: '/' },
+  { name: '服务列表', path: '/services' },
+  { name: '社区动态', path: '/community' },
+  { name: '社区相册', path: '/gallery' },
+  { name: '关于我们', path: '/about' }
+]
 
 // 当前活动路由
 const activeIndex = computed(() => route.path)
@@ -56,8 +66,9 @@ const goToMyAccount = () => {
       
       <nav class="nav">
         <el-menu mode="horizontal" router :default-active="activeIndex">
-          <el-menu-item index="/">首页</el-menu-item>
-          <el-menu-item index="/services">服务列表</el-menu-item>
+          <el-menu-item v-for="link in navLinks" :key="link.path" :index="link.path">
+            {{ link.name }}
+          </el-menu-item>
         </el-menu>
       </nav>
       
@@ -95,10 +106,10 @@ const goToMyAccount = () => {
           <span class="logo-text">宠爱社区</span>
         </div>
         <div class="footer-links">
-          <a href="#" class="footer-link">关于我们</a>
-          <a href="#" class="footer-link">联系方式</a>
-          <a href="#" class="footer-link">服务条款</a>
-          <a href="#" class="footer-link">隐私政策</a>
+          <router-link to="/about" class="footer-link">关于我们</router-link>
+          <router-link to="/community" class="footer-link">社区动态</router-link>
+          <router-link to="/services" class="footer-link">服务列表</router-link>
+          <router-link to="/gallery" class="footer-link">社区相册</router-link>
         </div>
         <div class="copyright">
           © {{ new Date().getFullYear() }} 宠爱社区 - PetCare Community. 保留所有权利

@@ -28,6 +28,24 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/community',
+    name: 'community',
+    component: () => import('@/views/community/index.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/gallery',
+    name: 'gallery',
+    component: () => import('@/views/gallery/index.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: () => import('@/views/about/index.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/account',
     name: 'account',
     component: () => import('@/views/account/index.vue'),
