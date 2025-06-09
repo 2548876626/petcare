@@ -1,5 +1,18 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { Search, PictureFilled } from '@element-plus/icons-vue'
+
+// 定义一个辅助函数，用于获取图片
+const getServiceImage = (imageName: string) => {
+  // 尝试使用本地图片，如果失败则使用在线图片
+  try {
+    // 这里使用在线图片作为备选
+    return `https://source.unsplash.com/random/400x300?${imageName.replace('.jpg', '')}`
+  } catch (error) {
+    console.error('图片加载失败:', error)
+    return `https://source.unsplash.com/random/400x300?pet`
+  }
+}
 
 // 服务类别
 const serviceCategories = ref([
@@ -24,7 +37,7 @@ const allServices = ref([
     description: '为您的宠物提供温馨、安全的寄养环境，让您安心出行无忧。我们的专业团队将确保您的爱宠在您不在时得到最好的照顾。',
     price: '¥80-200/天',
     category: 'care',
-    image: 'https://source.unsplash.com/random/300x200?pet+boarding'
+    imageName: 'pet-boarding.jpg'
   },
   {
     id: 2,
@@ -32,7 +45,7 @@ const allServices = ref([
     description: '由专业兽医团队提供全面的健康检查服务，包括体温、心率、呼吸、体重测量以及基础血液和尿液检测。',
     price: '¥150-300/次',
     category: 'medical',
-    image: 'https://source.unsplash.com/random/300x200?vet+check'
+    imageName: 'pet-health-check.jpg'
   },
   {
     id: 3,
@@ -40,7 +53,7 @@ const allServices = ref([
     description: '专业的宠物美容师为您的爱宠提供洗浴、修剪、梳理等全方位的美容服务，让您的宠物保持整洁清新。',
     price: '¥80-300/次',
     category: 'beauty',
-    image: 'https://source.unsplash.com/random/300x200?pet+grooming'
+    imageName: 'pet-grooming.jpg'
   },
   {
     id: 4,
@@ -48,7 +61,7 @@ const allServices = ref([
     description: '针对各类宠物的基础服从训练，包括坐下、等待、行走等基本指令，帮助您的宠物养成良好习惯。',
     price: '¥120-200/课时',
     category: 'training',
-    image: 'https://source.unsplash.com/random/300x200?dog+training'
+    imageName: 'pet-training.jpg'
   },
   {
     id: 5,
@@ -56,7 +69,7 @@ const allServices = ref([
     description: '当您不在家时，我们的专业人员可以上门照顾您的宠物，提供喂食、清洁和陪伴服务。',
     price: '¥50-100/次',
     category: 'care',
-    image: 'https://source.unsplash.com/random/300x200?pet+feeding'
+    imageName: 'pet-feeding.jpg'
   },
   {
     id: 6,
@@ -64,7 +77,7 @@ const allServices = ref([
     description: '为您的宠物提供必要的疫苗接种服务，预防常见疾病，保障宠物健康。',
     price: '¥80-300/针',
     category: 'medical',
-    image: 'https://source.unsplash.com/random/300x200?pet+vaccine'
+    imageName: 'pet-vaccine.jpg'
   },
   {
     id: 7,
@@ -72,7 +85,7 @@ const allServices = ref([
     description: '专业的宠物牙齿清洁服务，去除牙结石，预防口腔疾病，保持口气清新。',
     price: '¥200-500/次',
     category: 'medical',
-    image: 'https://source.unsplash.com/random/300x200?pet+dental'
+    imageName: 'pet-dental.jpg'
   },
   {
     id: 8,
@@ -80,7 +93,7 @@ const allServices = ref([
     description: '针对宠物的各种不良行为，如乱叫、咬东西、乱排泄等，提供专业的行为矫正训练。',
     price: '¥300-600/课程',
     category: 'training',
-    image: 'https://source.unsplash.com/random/300x200?pet+behavior'
+    imageName: 'pet-behavior.jpg'
   },
   {
     id: 9,
@@ -88,7 +101,7 @@ const allServices = ref([
     description: '根据宠物特点和主人喜好，提供个性化的造型设计服务，让您的爱宠更加独特。',
     price: '¥120-400/次',
     category: 'beauty',
-    image: 'https://source.unsplash.com/random/300x200?pet+styling'
+    imageName: 'pet-styling.jpg'
   }
 ])
 
@@ -114,7 +127,7 @@ const filteredServices = computed(() => {
 })
 
 // 切换类别
-const changeCategory = (categoryId) => {
+const changeCategory = (categoryId: string) => {
   activeCategory.value = categoryId
 }
 
@@ -148,7 +161,7 @@ const clearSearch = () => {
           @clear="clearSearch"
         >
           <template #prefix>
-            <el-icon><search /></el-icon>
+            <el-icon><Search /></el-icon>
           </template>
         </el-input>
       </div>
@@ -161,7 +174,19 @@ const clearSearch = () => {
         <el-col v-for="service in filteredServices" :key="service.id" :xs="24" :sm="12" :md="8" :lg="8">
           <el-card class="service-card" shadow="hover">
             <div class="service-image">
-              <img :src="service.image" :alt="service.title">
+              <el-image 
+                :src="getServiceImage(service.imageName)" 
+                :alt="service.title"
+                fit="cover"
+                lazy
+              >
+                <template #error>
+                  <div class="image-error">
+                    <el-icon><picture-filled /></el-icon>
+                    <span>加载失败</span>
+                  </div>
+                </template>
+              </el-image>
             </div>
             <div class="service-content">
               <h3 class="service-title">{{ service.title }}</h3>
@@ -247,15 +272,24 @@ const clearSearch = () => {
   border-radius: 4px;
 }
 
-.service-image img {
+.service-image .el-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+}
+
+.service-card:hover .service-image .el-image img {
+  transform: scale(1.05);
   transition: transform 0.3s;
 }
 
-.service-card:hover .service-image img {
-  transform: scale(1.05);
+.image-error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: #f5f7fa;
+  color: #909399;
 }
 
 .service-content {
