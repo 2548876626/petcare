@@ -3,7 +3,7 @@
     <!-- Three.js Canvas 的挂载点 -->
     <div ref="canvasContainer" class="canvas-container"></div>
 
-    <!-- 悬浮的UI控制面板 -->
+    <!-- 悬浮的UI控制面板，固定在下方 -->
     <div class="controls">
       <div class="control-bg" :class="displayMode"></div>
       <button @click="setMode('grid')" :class="{ active: displayMode === 'grid' }">网格</button>
@@ -86,14 +86,19 @@ function initScene() {
   const container = canvasContainer.value;
 
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 2000);
+  camera = new THREE.PerspectiveCamera(100, container.clientWidth / container.clientHeight, 0.1, 2000);
   
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(container.clientWidth, container.clientHeight); // 初始设置尺寸
   container.appendChild(renderer.domElement);
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
+  controls.enableZoom = true; // 启用缩放
+  controls.enablePan = true;
+  controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+  controls.touches.ONE = THREE.TOUCH.PAN;
   
   scene.add(new THREE.AmbientLight(0xffffff, 3));
 }
@@ -106,7 +111,6 @@ function setupEventListeners() {
   
   // 设置ResizeObserver，这是解决初始布局问题的关键
   resizeObserver = new ResizeObserver((entries) => {
-    // 确保有条目且容器存在
     if (entries.length > 0 && canvasContainer.value) {
       const entry = entries[0];
       
@@ -143,37 +147,52 @@ function calculateGridTargets(containerWidth: number, containerHeight: number) {
   // 清空之前的网格目标
   targets.grid = [];
   
-  // 计算适合当前容器的网格布局
-  // 根据容器宽度动态计算列数
-  const photoSize = 4; // 基础照片尺寸单位
+  // 设置照片的宽高比和间距
+  const aspectRatio = 4 / 3;
   const gap = 0.5; // 照片间距
+  const minPhotoWidth = 2; // 最小照片宽度
+  const maxPhotoWidth = 6; // 最大照片宽度
   
-  // 计算每行能容纳的照片数量（至少1个）
-  // 使用容器宽度除以理想照片宽度（像素）来确定列数
-  const idealPhotoWidth = 180; // 理想的照片宽度（像素）
-  const columns = Math.max(1, Math.floor(containerWidth / idealPhotoWidth));
+  // 根据容器宽度动态计算列数
+  const idealPhotoPixelWidth = 120; // 减小理想宽度以增加列数
+  const columns = Math.max(1, Math.floor(containerWidth / idealPhotoPixelWidth));
   
   // 计算行数
   const rows = Math.ceil(PHOTO_COUNT / columns);
   
+  // 计算照片宽度，基于容器宽度和列数
+  const totalGapWidth = (columns - 1) * gap;
+  let photoWidth = (containerWidth / columns) * 0.03; // 减小缩放因子以增加密度
+  photoWidth = Math.max(minPhotoWidth, Math.min(maxPhotoWidth, photoWidth)); // 限制照片宽度范围
+  
+  // 根据宽高比计算照片高度
+  const photoHeight = photoWidth / aspectRatio;
+  
   // 计算网格的总宽高
-  const gridWidth = columns * (photoSize + gap) - gap;
-  const gridHeight = rows * (photoSize + gap) - gap;
+  const gridWidth = columns * photoWidth + totalGapWidth;
+  const gridHeight = rows * photoHeight + (rows - 1) * gap;
   
   // 计算起始位置，使网格居中
-  const startX = -gridWidth / 2 + photoSize / 2;
-  const startY = gridHeight / 2 - photoSize / 2;
+  const startX = -gridWidth / 2 + photoWidth / 2;
+  const startY = gridHeight / 2 - photoHeight / 2;
   
   // 创建网格位置
   for (let i = 0; i < PHOTO_COUNT; i++) {
     const col = i % columns;
     const row = Math.floor(i / columns);
     
-    const x = startX + col * (photoSize + gap);
-    const y = startY - row * (photoSize + gap);
+    const x = startX + col * (photoWidth + gap);
+    const y = startY - row * (photoHeight + gap);
     
     targets.grid.push(new THREE.Vector3(x, y, 0));
   }
+  
+  // 更新所有照片网格的几何体，以匹配新的尺寸
+  const geometry = new THREE.PlaneGeometry(photoWidth, photoHeight);
+  photoMeshes.forEach((mesh) => {
+    mesh.geometry.dispose(); // 释放旧的几何体
+    mesh.geometry = geometry; // 应用新的几何体
+  });
   
   return { gridWidth, gridHeight };
 }
@@ -251,7 +270,7 @@ function transition(mode: 'grid' | 'sphere', duration: number = 1.5) {
       const gridZ = Math.max(zForHeight, zForWidth) * 1.05; // 稍微增加一点边距
       
       // 设置相机位置动画
-      gsap.to(camera.position, { x: 0, y: 0, z: gridZ, duration, ease });
+      gsap.to(camera.position, { x: 0, y: 0, z: gridZ * 0.6, duration, ease }); // 进一步放大
       gsap.to(controls.target, { x: 0, y: 0, z: 0, duration, ease });
     }
   } else {
@@ -269,7 +288,7 @@ function transition(mode: 'grid' | 'sphere', duration: number = 1.5) {
   
   // 重置相机缩放
   gsap.to(camera, { 
-    zoom: 1, 
+    zoom: 2.0, // 增加默认缩放级别
     duration, 
     ease, 
     onUpdate: () => camera.updateProjectionMatrix() 
@@ -308,7 +327,10 @@ function handleResize(width?: number, height?: number) {
       photoMeshes[i].position.copy(targets.grid[i]);
     }
     
-    camera.position.set(0, 0, gridZ);
+    // 默认放大效果：减小 Z 位置或增加 zoom
+    camera.position.set(0, 0, gridZ * 0.5); // 进一步减小 Z 位置以放大
+    camera.zoom = 2.5; // 默认放大 2.0 倍
+    camera.updateProjectionMatrix();
     controls.target.set(0, 0, 0);
     
     // 设置网格模式的控制器
@@ -325,8 +347,9 @@ function handleResize(width?: number, height?: number) {
       gsap.to(photoMeshes[i].position, { ...targets.grid[i], duration: 0.5 });
     }
     
-    gsap.to(camera.position, { x: 0, y: 0, z: gridZ, duration: 0.5 });
+    gsap.to(camera.position, { x: 0, y: 0, z: gridZ * 0.6, duration: 0.5 }); // 保持放大
     gsap.to(controls.target, { x: 0, y: 0, z: 0, duration: 0.5 });
+    gsap.to(camera, { zoom: 2.0, duration: 0.5, onUpdate: () => camera.updateProjectionMatrix() });
   }
 }
 
@@ -362,18 +385,23 @@ function setMode(mode: 'grid' | 'sphere') {
 <style scoped>
 .interactive-gallery {
   position: relative;
-  width: 100%;
-  height: calc(100vh - 60px); /* 减去顶部导航栏高度 */
+  width: 100vw !important; /* 强制使用视口宽度 */
+  height: 100vh !important; /* 强制使用视口高度 */
   background-color: #111;
   overflow: hidden;
+  margin: 0; /* 去除默认边距 */
+  padding: 0; /* 去除默认内边距 */
 }
 .canvas-container {
   width: 100%;
   height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 .controls {
   position: absolute;
-  bottom: 30px;
+  bottom: 110px; /* 固定在下方 */
   left: 50%;
   transform: translateX(-50%);
   background-color: rgba(30, 30, 30, 0.75);
@@ -383,6 +411,7 @@ function setMode(mode: 'grid' | 'sphere') {
   display: flex;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10; /* 确保控件在画布之上 */
 }
 .controls button {
   position: relative;
