@@ -1,0 +1,45 @@
+@import './base.css';
+
+/* 全局样式 */
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f5f7fa;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* 确保所有按钮和链接都能正确响应点击事件 */
+a, button, .el-button, .el-menu-item, .el-dropdown-item {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* 添加一个特殊类，用于确保元素可点击 */
+.clickable {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10;
+}
+
+/* 修复Element Plus菜单项点击问题 */
+.el-menu--horizontal > .el-menu-item,
+.el-menu--horizontal > .el-sub-menu .el-sub-menu__title {
+  height: 60px;
+  line-height: 60px;
+  border-bottom: 2px solid transparent;
+  cursor: pointer !important;
+}
+
+/* 修复点击穿透问题 */
+.el-menu--popup {
+  z-index: 2000 !important;
+}
+
+/* 修复移动端点击延迟问题 */
+* {
+  touch-action: manipulation;
+} 

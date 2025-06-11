@@ -5,6 +5,13 @@ import heroImageUrl from '@/assets/images/hero-background.jpg'
 import { supabase } from '@/lib/supabaseClient'
 import { ElLoading } from 'element-plus'
 
+// 导入文章图片
+import homemadeTreatsImg from '@/assets/articles/homemade-treats.jpg'
+import separationAnxietyImg from '@/assets/articles/separation-anxiety.jpg'
+import summerHealthImg from '@/assets/articles/summer-health.jpg'
+import newPetGuideImg from '@/assets/articles/new-pet-guide.jpg'
+import catBehaviorImg from '@/assets/articles/cat-behavior.jpg'
+
 // 文章接口定义
 interface Post {
   id: number;
@@ -15,6 +22,7 @@ interface Post {
   cover_image_url: string;
   published_at: string;
   created_at: string;
+  imageName?: string; // 添加可选的图片名称字段
 }
 
 const router = useRouter()
@@ -22,6 +30,20 @@ const router = useRouter()
 // 获取本地图片函数
 const getLocalImage = (imageName: string) => {
   return `/images/${imageName}`
+}
+
+// 图片映射对象
+const articleImages: Record<string, string> = {
+  'homemade-treats.jpg': homemadeTreatsImg,
+  'separation-anxiety.jpg': separationAnxietyImg,
+  'summer-health.jpg': summerHealthImg,
+  'new-pet-guide.jpg': newPetGuideImg,
+  'cat-behavior.jpg': catBehaviorImg
+}
+
+// 获取文章图片函数
+const getImageUrl = (imageName: string) => {
+  return articleImages[imageName] || ''
 }
 
 // 静态数据 - 宠物服务卡片
@@ -56,31 +78,48 @@ const petServices = ref([
   }
 ])
 
-// 社区动态文章数据
-const communityUpdates = ref<Post[]>([])
+// 社区动态文章数据 - 使用静态数据替代从 Supabase 获取的数据
+const communityUpdates = ref<Post[]>([
+  {
+    id: 1,
+    title: '自制宠物零食：健康又美味的食谱分享',
+    summary: '了解如何在家制作健康美味的宠物零食，让您的爱宠享受健康的美食。',
+    content: '',
+    author: '宠爱编辑',
+    cover_image_url: '',
+    published_at: '2023-08-20',
+    created_at: '2023-08-20',
+    imageName: 'homemade-treats.jpg'
+  },
+  {
+    id: 2,
+    title: '狗狗分离焦虑怎么办？五个实用训练技巧',
+    summary: '帮助您的狗狗克服分离焦虑，让它们在您不在家时也能保持平静。',
+    content: '',
+    author: '宠爱训犬师',
+    cover_image_url: '',
+    published_at: '2023-08-15',
+    created_at: '2023-08-15',
+    imageName: 'separation-anxiety.jpg'
+  },
+  {
+    id: 3,
+    title: '夏季宠物保健指南：预防中暑的方法',
+    summary: '了解如何在炎热的夏季保护您的宠物健康，预防中暑和其他夏季常见问题。',
+    content: '',
+    author: '宠爱兽医',
+    cover_image_url: '',
+    published_at: '2023-08-05',
+    created_at: '2023-08-05',
+    imageName: 'summer-health.jpg'
+  }
+])
 const loadingPosts = ref(false)
 
-// 获取最新文章
+// 获取最新文章 - 不再从 Supabase 获取
 const fetchLatestPosts = async () => {
-  loadingPosts.value = true
-  try {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .order('published_at', { ascending: false })
-      .limit(3)
-    
-    if (error) {
-      console.error('获取文章失败:', error)
-      return
-    }
-    
-    communityUpdates.value = data as Post[]
-  } catch (error) {
-    console.error('获取文章出错:', error)
-  } finally {
-    loadingPosts.value = false
-  }
+  // 使用静态数据，不再从 Supabase 获取
+  loadingPosts.value = false
 }
 
 // 跳转到服务列表页
@@ -153,7 +192,8 @@ onMounted(() => {
           <router-link :to="'/post/' + post.id" class="post-link">
             <el-card class="post-card" shadow="hover">
               <div class="post-image">
-                <img :src="post.cover_image_url" :alt="post.title">
+                <img v-if="post.imageName" :src="getImageUrl(post.imageName)" :alt="post.title">
+                <img v-else :src="post.cover_image_url" :alt="post.title">
               </div>
               <div class="post-meta">
                 <span class="post-date">{{ new Date(post.published_at).toLocaleDateString() }}</span>

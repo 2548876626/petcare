@@ -2,6 +2,27 @@
 import { ref, onMounted } from 'vue'
 import { supabase } from '@/lib/supabaseClient'
 
+// 导入文章图片
+import homemadeTreatsImg from '@/assets/articles/homemade-treats.jpg'
+import separationAnxietyImg from '@/assets/articles/separation-anxiety.jpg'
+import summerHealthImg from '@/assets/articles/summer-health.jpg'
+import newPetGuideImg from '@/assets/articles/new-pet-guide.jpg'
+import catBehaviorImg from '@/assets/articles/cat-behavior.jpg'
+
+// 图片映射对象
+const articleImages: Record<string, string> = {
+  'homemade-treats.jpg': homemadeTreatsImg,
+  'separation-anxiety.jpg': separationAnxietyImg,
+  'summer-health.jpg': summerHealthImg,
+  'new-pet-guide.jpg': newPetGuideImg,
+  'cat-behavior.jpg': catBehaviorImg
+}
+
+// 获取文章图片函数
+const getImageUrl = (imageName: string) => {
+  return articleImages[imageName] || ''
+}
+
 // 文章接口定义
 interface Post {
   id: number;
@@ -12,6 +33,7 @@ interface Post {
   cover_image_url: string;
   published_at: string;
   created_at: string;
+  imageName?: string; // 添加可选的图片名称字段
 }
 
 // 文章数据
@@ -21,23 +43,67 @@ const loading = ref(false)
 // 获取所有文章
 const fetchAllPosts = async () => {
   loading.value = true
-  try {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .order('published_at', { ascending: false })
-    
-    if (error) {
-      console.error('获取文章失败:', error)
-      return
+  
+  // 使用静态数据替代从 Supabase 获取的数据
+  posts.value = [
+    {
+      id: 1,
+      title: '自制宠物零食：健康又美味的食谱分享',
+      summary: '了解如何在家制作健康美味的宠物零食，让您的爱宠享受健康的美食。',
+      content: '',
+      author: '宠爱编辑',
+      cover_image_url: '',
+      published_at: '2023-08-20',
+      created_at: '2023-08-20',
+      imageName: 'homemade-treats.jpg'
+    },
+    {
+      id: 2,
+      title: '狗狗分离焦虑怎么办？五个实用训练技巧',
+      summary: '帮助您的狗狗克服分离焦虑，让它们在您不在家时也能保持平静。',
+      content: '',
+      author: '宠爱训犬师',
+      cover_image_url: '',
+      published_at: '2023-08-15',
+      created_at: '2023-08-15',
+      imageName: 'separation-anxiety.jpg'
+    },
+    {
+      id: 3,
+      title: '夏季宠物保健指南：预防中暑的方法',
+      summary: '了解如何在炎热的夏季保护您的宠物健康，预防中暑和其他夏季常见问题。',
+      content: '',
+      author: '宠爱兽医',
+      cover_image_url: '',
+      published_at: '2023-08-05',
+      created_at: '2023-08-05',
+      imageName: 'summer-health.jpg'
+    },
+    {
+      id: 4,
+      title: '新手养宠必读：选择适合您家庭的宠物',
+      summary: '为新手宠物主人提供选择合适宠物的建议和指南。',
+      content: '',
+      author: '宠爱顾问',
+      cover_image_url: '',
+      published_at: '2023-08-02',
+      created_at: '2023-08-02',
+      imageName: 'new-pet-guide.jpg'
+    },
+    {
+      id: 5,
+      title: '猫咪行为解读：理解您猫咪的肢体语言',
+      summary: '学习如何理解猫咪的各种行为和肢体语言，增进与爱宠的沟通。',
+      content: '',
+      author: '宠爱猫咪专家',
+      cover_image_url: '',
+      published_at: '2023-07-28',
+      created_at: '2023-07-28',
+      imageName: 'cat-behavior.jpg'
     }
-    
-    posts.value = data as Post[]
-  } catch (error) {
-    console.error('获取文章出错:', error)
-  } finally {
-    loading.value = false
-  }
+  ];
+  
+  loading.value = false;
 }
 
 // 页面加载时获取数据
@@ -64,7 +130,8 @@ onMounted(() => {
         <router-link v-for="post in posts" :key="post.id" :to="'/post/' + post.id" class="post-link">
           <div class="post-card">
             <div class="post-image">
-              <img :src="post.cover_image_url" :alt="post.title">
+              <img v-if="post.imageName" :src="getImageUrl(post.imageName)" :alt="post.title">
+              <img v-else :src="post.cover_image_url" :alt="post.title">
             </div>
             <div class="post-content">
               <div class="post-meta">
